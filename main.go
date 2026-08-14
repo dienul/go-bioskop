@@ -27,8 +27,8 @@ var db *sql.DB
 func main() {
 	// Overload membaca konfigurasi dari file .env di root project.
 	// Nilai dari file .env akan dipakai meskipun terminal memiliki nilai lama.
-	if err := godotenv.Overload(); err != nil {
-		log.Fatal("Gagal membaca file .env: ", err)
+	if err := godotenv.Overload(); err != nil && !os.IsNotExist(err) {
+		log.Println("Peringatan saat membaca file .env:", err)
 	}
 
 	var err error
@@ -45,25 +45,31 @@ func main() {
 	router.PUT("/bioskop/:id", ubahBioskop)
 	router.DELETE("/bioskop/:id", hapusBioskop)
 
-	fmt.Println("Server berjalan di http://localhost:8080")
-	if err := router.Run(":8080"); err != nil {
+	portAplikasi := ambilEnv("PORT", "8080")
+	fmt.Println("Server berjalan pada port " + portAplikasi)
+	if err := router.Run(":" + portAplikasi); err != nil {
 		log.Fatal("Gagal menjalankan server: ", err)
 	}
 }
 
 // bukaDatabase membuat koneksi ke PostgreSQL menggunakan environment variable.
 func bukaDatabase() (*sql.DB, error) {
-	host := ambilEnv("DB_HOST", "localhost")
-	port := ambilEnv("DB_PORT", "5432")
-	user := ambilEnv("DB_USER", "postgres")
-	password := ambilEnv("DB_PASSWORD", "postgres")
-	dbName := ambilEnv("DB_NAME", "go_bioskop")
-	sslMode := ambilEnv("DB_SSLMODE", "disable")
+	// Railway menyediakan koneksi lengkap melalui DATABASE_URL.
+	// Jika tidak ada, aplikasi memakai konfigurasi DB_* untuk database lokal.
+	koneksi := os.Getenv("DATABASE_URL")
+	if koneksi == "" {
+		host := ambilEnv("DB_HOST", "localhost")
+		port := ambilEnv("DB_PORT", "5432")
+		user := ambilEnv("DB_USER", "postgres")
+		password := ambilEnv("DB_PASSWORD", "postgres")
+		dbName := ambilEnv("DB_NAME", "go_bioskop")
+		sslMode := ambilEnv("DB_SSLMODE", "disable")
 
-	koneksi := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		host, port, user, password, dbName, sslMode,
-	)
+		koneksi = fmt.Sprintf(
+			"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+			host, port, user, password, dbName, sslMode,
+		)
+	}
 
 	database, err := sql.Open("postgres", koneksi)
 	if err != nil {

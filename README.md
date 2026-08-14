@@ -61,3 +61,39 @@ Jika berhasil, server mengembalikan status `201 Created`:
 ```
 
 Jika `nama` atau `lokasi` tidak diisi, server mengembalikan status `400 Bad Request`.
+
+## Pengujian dengan curl di PowerShell
+
+Jalankan server dengan `go run .`, lalu buka PowerShell baru untuk menjalankan perintah berikut.
+
+### Tambah bioskop
+
+```powershell
+curl.exe -X POST "http://localhost:8080/bioskop" -H "Content-Type: application/json" -d '{\"nama\":\"Cinema XXI\",\"lokasi\":\"Jakarta\",\"rating\":4.5}'
+```
+
+### Ambil semua bioskop
+
+```powershell
+curl.exe "http://localhost:8080/bioskop"
+```
+
+### Ambil detail bioskop
+
+```powershell
+curl.exe "http://localhost:8080/bioskop/1"
+```
+
+### Perbarui bioskop
+
+```powershell
+curl.exe -X PUT "http://localhost:8080/bioskop/1" -H "Content-Type: application/json" -d '{\"nama\":\"Cinema XXI Update\",\"lokasi\":\"Bandung\",\"rating\":4.8}'
+```
+
+### Hapus bioskop
+
+```powershell
+curl.exe -X DELETE "http://localhost:8080/bioskop/1"
+```
+
+Ganti angka `1` dengan ID bioskop yang ingin dilihat, diperbarui, atau dihapus.
